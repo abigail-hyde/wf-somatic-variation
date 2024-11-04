@@ -194,8 +194,8 @@ process bedmethyl_split {
 
 process summary {
     label "wf_somatic_mod"
-    // cpus line edited to replace 'memory { 8.GB * task.attempt - 1.GB }'
-    cpus {2 * task.attempt}
+    // removed 'memory { 8.GB * task.attempt - 1.GB }'
+    cpus 4
     maxRetries 1
     errorStrategy = {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
