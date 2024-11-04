@@ -79,7 +79,8 @@ process validate_modbam {
 process sample_probs {
     label "wf_somatic_mod"
     // Using 4 threads on a 90X takes ~30sec to complete
-    memory { 8.GB * task.attempt - 1.GB }
+    // cpu line added instead of memory allocation (8.GB * task.attempt - 1.GB)
+    cpus {2 * task.attempt}
     maxRetries 1
     errorStrategy = {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -109,8 +110,8 @@ process sample_probs {
 
 process modkit {
     label "wf_somatic_mod"
-    cpus params.modkit_threads
-    memory {(1.GB * params.modkit_threads * task.attempt) + 3.GB}
+    // cpus line edited to replace line 'memory {(1.GB * params.modkit_threads * task.attempt) + 3.GB}'
+    cpus {(params.modkit_threads * task.attempt) + 1}
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -194,8 +195,8 @@ process bedmethyl_split {
 
 process summary {
     label "wf_somatic_mod"
-    cpus 4
-    memory { 8.GB * task.attempt - 1.GB }
+    // cpus line edited to replace 'memory { 8.GB * task.attempt - 1.GB }'
+    cpus {2 * task.attempt}
     maxRetries 1
     errorStrategy = {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -242,11 +243,11 @@ process bed2dss {
 // Run DSS to compute DMR/L
 process dss {
     label "dss"
-    cpus { params.dss_threads <= 4 ? params.dss_threads : 4 }
+    // cpus increased from 4 to 20 to replace 'memory { (task.cpus * 19.GB) }'
+    cpus { params.dss_threads <= 20 ? params.dss_threads : 20 }
     // Set memory to 16G/core + 2GB for buffer.
     // Benchmark shows that DSS ends up using more memory than predicted,
     // with spikes up to >74GB with 4 cores. In these cases we ignore the raised errors.
-    memory { (task.cpus * 19.GB) }
     errorStrategy 'ignore'
     input:
         tuple val(meta), 
@@ -312,8 +313,9 @@ process dss {
 // Make report.
 process makeModReport {
     label "wf_common"
-    cpus 1
-    memory { 6.GB * task.attempt }
+    // cpus updated to replace 'memory { 6.GB * task.attempt }'
+    cpus {2 * task.attempt}
+    
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input: 
