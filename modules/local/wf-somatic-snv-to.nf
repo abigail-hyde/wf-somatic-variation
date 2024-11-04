@@ -1,12 +1,11 @@
 import groovy.json.JsonBuilder
 
-// Define memory requirements for phasing
-def req_mem = params.use_longphase ? [8.GB, 32.GB, 64.GB] : [4.GB, 8.GB, 12.GB]
+// Define cpu requirements for phasing, edited from memory requirement
+def req_cpu = params.use_longphase ? [4, 8, 16] : [4, 4, 4]
 
 process getVersions {
     label "wf_somatic_snv_to"
     cpus 1
-    memory 2.GB
     output:
         path "versions.txt"
     script:
@@ -22,7 +21,6 @@ process getVersions {
 process getParams {
     label "wf_somatic_snv_to"
     cpus 1
-    memory 2.GB
     output:
         path "params.json"
     script:
@@ -40,7 +38,6 @@ process getParams {
 process wf_build_regions {
     label "wf_somatic_snv_to"
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta),
             path(tumor_bam, stageAs: "tumor/*"),
@@ -98,8 +95,8 @@ process wf_build_regions {
 // Extract candidate regions to process.
 process clairs_to_extract_candidates {
     label "wf_somatic_snv_to"
-    cpus 2
-    memory { 6.GB * task.attempt }
+    // modify cpus to replace memory { 6.GB * task.attempt }
+    cpus {2 * task.attempt}
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -181,8 +178,8 @@ process clairs_to_extract_candidates {
 // Create Tensors for Affirmative Model.
 process clairs_to_create_affirmative_model_tensors {
     label "wf_somatic_snv_to"
-    cpus 2
-    memory { 4.GB * task.attempt }
+    // modify cpus to replace memory { 4.GB * task.attempt }
+    cpus {2 * task.attempt}
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -225,8 +222,8 @@ process clairs_to_create_affirmative_model_tensors {
 // Create Tensors for Negational Model.
 process clairs_to_create_negational_model_tensors {
     label "wf_somatic_snv_to"
-    cpus 2
-    memory { 4.GB * task.attempt }
+    // modify cpus to replace memory { 4.GB * task.attempt }
+    cpus {2 * task.attempt}
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -269,8 +266,8 @@ process clairs_to_create_negational_model_tensors {
 // Perform pileup variant prediction using the paired affirmative-negational tensors.
 process clairs_to_predict_pileup {
     label "wf_somatic_snv_to"
-    cpus 1
-    memory { 6.GB * task.attempt }
+    // modify cpus to replace memory { 6.GB * task.attempt }
+    cpus {2 * task.attempt}
     maxRetries 3
     errorStrategy {task.exitStatus in [134,137,140] ? 'retry' : 'finish'}
     input:
@@ -326,8 +323,8 @@ process clairs_to_predict_pileup {
 // Create pileup VCFs using the predictions.
 process clairs_to_pileup {
     label "wf_somatic_snv_to"
-    cpus 1
-    memory { 4.GB * task.attempt }
+    // modify cpus to replace memory { 4.GB * task.attempt }
+    cpus {task.attempt}
     // Add also 134 as it is the error code associated with libomp.so already initialized.
     // Since this error is spurious and, so far, unpredictable, add it here to simply retry
     errorStrategy {task.exitStatus in [134,137,140] ? 'retry' : 'finish'}
@@ -372,7 +369,6 @@ process clairs_to_pileup {
 process clairs_to_merge_pileup {
     label "wf_somatic_snv_to"
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta), 
             val(variant_type),
@@ -402,8 +398,8 @@ process clairs_to_merge_pileup {
 // Use DBs to tag non-somatic variants.
 process clairs_to_tag_non_somatic_db {
     label "wf_somatic_snv_to"
-    cpus 1
-    memory { 8.GB * task.attempt }
+    // modify cpus to replace memory { 8.GB * task.attempt }
+    cpus {2 * task.attempt}
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -444,7 +440,6 @@ process clairs_to_tag_non_somatic_db {
 process clairs_to_merge_tagged {
     label "wf_somatic_snv_to"
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta), 
             val(variant_type),
@@ -477,7 +472,6 @@ process clairs_to_merge_tagged {
 process clairs_to_select_het_snps {
     label "wf_somatic_snv_to"
     cpus 2
-    memory 4.GB
     input:
         tuple val(meta),
             val(variant_type),
@@ -518,9 +512,8 @@ process clairs_to_select_het_snps {
 // Run variant phasing on each contig using either longphase or whatshap.
 process clairs_to_phase {
     label "wf_somatic_snv_to"
-    cpus 4
-    // Define memory from phasing tool and number of attempt
-    memory { req_mem[task.attempt - 1] }
+    // Define cpus from phasing tool and number of attempt - modified from memory
+    cpus { req_cpu[task.attempt - 1] }
     maxRetries 2
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -577,7 +570,6 @@ process clairs_to_phase {
 process clairs_to_haplotag {
     label "wf_somatic_snv_to"
     cpus 4
-    memory 4.GB
     input:
         tuple val(meta),
             val(variant_type),
@@ -619,7 +611,6 @@ process clairs_to_haplotag {
 process clairs_to_hap_filter {
     label "wf_somatic_snv_to"
     cpus params.haplotype_filter_threads
-    memory { (2.GB * task.cpus) + 3.GB }
     input:
         tuple val(meta),
             path("bams/*"),
@@ -663,7 +654,6 @@ process clairs_to_hap_filter {
 process clairs_to_merge_hapfilt {
     label "wf_somatic_snv_to"
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta),
             val(variant_type), 
@@ -694,7 +684,8 @@ process clairs_to_merge_hapfilt {
 // Run ClairS-TO postprocessing.
 process clairs_to_postprocess {
     label "wf_somatic_snv_to"
-    memory { 8.GB * task.attempt }
+    // add cpu line to replace memory { 8.GB * task.attempt }
+    cpus { 2 * task.attempt }
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -738,7 +729,6 @@ process clairs_to_postprocess {
 process vcfSortIndex {
     label "wf_somatic_snv"
     cpus 2
-    memory 4.GB
 
     input:
     tuple val(meta), path(vcf)
