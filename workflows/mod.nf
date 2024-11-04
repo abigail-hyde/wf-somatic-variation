@@ -3,7 +3,6 @@ import groovy.json.JsonBuilder
 process getVersions {
     label "wf_somatic_mod"
     cpus 1
-    memory 4.GB
     output:
         path "versions_tmp.txt"
     script:
@@ -17,7 +16,6 @@ process getVersions {
 process rVersions {
     label "dss"
     cpus 2
-    memory 4.GB
     input:
         path "versions_tmp.txt"
     output:
@@ -33,7 +31,6 @@ process rVersions {
 
 process getParams {
     cpus 1
-    memory 4.GB
     output:
         path "params.json"
     script:
@@ -153,8 +150,8 @@ process modkit {
 
 process concat_bedmethyl {
     label "wf_somatic_mod"
-    cpus 4
-    memory 8.GB
+    cpus 8
+    // cpus doubled to 8 as memory requirement was 8.GB
 
     input:
         tuple val(meta),
@@ -177,7 +174,6 @@ process concat_bedmethyl {
 process bedmethyl_split {
     label "wf_common"
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta), 
             path(bed)
@@ -227,7 +223,6 @@ process summary {
 process bed2dss {
     label "wf_somatic_mod"
     cpus 2
-    memory 4.GB
     input:
         tuple val(meta), 
             val(mod),
