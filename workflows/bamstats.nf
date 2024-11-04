@@ -1,7 +1,6 @@
 process bamstats {
     label "wf_common"
     cpus 4
-    memory 4.GB
     input:
         tuple path(xam), path(xam_idx), val(xam_meta)
         tuple path(ref), path(ref_idx), path(ref_cache), env(REF_PATH)
@@ -85,7 +84,6 @@ process mosdepth {
 process get_coverage {
     label "wf_common"
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta), path(mosdepth_summary)
 
@@ -108,7 +106,6 @@ process get_coverage {
 // Process to get the regions with genome coverage above given thresholds.
 process get_region_coverage {
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta),
             path(regions),
@@ -151,7 +148,6 @@ process get_region_coverage {
 // Define shared regions in Tumor and/or Normal passing the thresholds.
 process get_shared_region {
     cpus 1
-    memory 4.GB
     input:
         tuple val(sample),
             path("tumor.bed"),
