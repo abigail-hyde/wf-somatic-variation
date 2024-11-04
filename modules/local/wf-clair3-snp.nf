@@ -316,7 +316,7 @@ process evaluate_candidates {
     // This can go very high, depending on the depth of coverage and size of the dataset.
     label "wf_somatic_snv"
     // cpus updated to replace memory { 8.GB * task.attempt }
-    cpus {2 * task.attempy}
+    cpus {2 * task.attempt}
     maxRetries 3
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
