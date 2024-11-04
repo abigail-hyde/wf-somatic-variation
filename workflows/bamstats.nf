@@ -41,8 +41,8 @@ process bamstats {
 }
 
 process mosdepth {
-    cpus 2
-    memory { 4.GB * task.attempt }
+    // cpus updated to replace memory { 4.GB * task.attempt }
+    cpus {2 * task.attempt}
     maxRetries 3
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -168,7 +168,8 @@ process get_shared_region {
 // Make report.
 process makeQCreport {
     label "wf_common"
-    cpus 1
+    // updated cpus to replace memory { 8.GB * task.attempt - 1.GB }
+    cpus {2 * task.attempt}
     // Increase memory up to 15GB. 
     // Most time the workflow will do fine with 7.GB, but we have seen the
     // the same reporting process in humvar failing with
@@ -178,7 +179,6 @@ process makeQCreport {
     // 8.GB, but if the process fails with a memory error try again doubling
     // the allowed memory
 
-    memory { 8.GB * task.attempt - 1.GB }
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input: 
