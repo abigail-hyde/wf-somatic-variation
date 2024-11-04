@@ -151,8 +151,7 @@ process modkit {
 
 process concat_bedmethyl {
     label "wf_somatic_mod"
-    cpus 8
-    // cpus doubled to 8 as memory requirement was 8.GB
+    cpus 4
 
     input:
         tuple val(meta),
