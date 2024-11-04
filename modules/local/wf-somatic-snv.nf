@@ -1,7 +1,7 @@
 import groovy.json.JsonBuilder
 
-// Define memory requirements for phasing
-def req_mem = params.use_longphase ? [8.GB, 32.GB, 64.GB] : [4.GB, 8.GB, 12.GB]
+// Define cpu requirements for phasing, replaced from memory (minimum cpus defined as 4)
+def req_cpu = params.use_longphase ? [4, 8, 16] : [4, 4, 4]
 
 // See https://github.com/nextflow-io/nextflow/issues/1636
 // This is the only way to publish files from a workflow whilst
@@ -26,7 +26,6 @@ process publish_snv {
 process getVersions {
     label "wf_somatic_snv"
     cpus 1
-    memory 4.GB
     output:
         path "versions.txt"
     script:
@@ -42,7 +41,6 @@ process getVersions {
 process getParams {
     label "wf_somatic_snv"
     cpus 1
-    memory 4.GB
     output:
         path "params.json"
     script:
@@ -57,7 +55,6 @@ process getParams {
 process vcfStats {
     label "wf_somatic_snv"
     cpus 2
-    memory 4.GB
     input:
         tuple val(meta), path(vcf), path(index)
     output:
@@ -72,7 +69,6 @@ process vcfStats {
 process makeReport {
     label "wf_common"
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta), 
             path(vcf), 
@@ -118,7 +114,6 @@ process makeReport {
 process lookup_clair3_model {
     label "wf_somatic_snv"
     cpus 1
-    memory 4.GB
     input:
         path("lookup_table")
         val basecall_model
@@ -138,7 +133,6 @@ process lookup_clair3_model {
 process wf_build_regions {
     label "wf_somatic_snv"
     cpus 1
-    memory 4.GB
     input:
         tuple path(normal_bam, stageAs: "normal/*"), 
             path(normal_bai, stageAs: "normal/*"),
@@ -188,7 +182,6 @@ process wf_build_regions {
 process clairs_select_het_snps {
     label "wf_somatic_snv"
     cpus 2
-    memory 4.GB
     input:
         tuple val(meta_tumor), 
             path(tumor_vcf, stageAs: "tumor.vcf.gz"), 
@@ -224,9 +217,8 @@ process clairs_select_het_snps {
 // Run variant phasing on each contig using either longphase or whatshap.
 process clairs_phase {
     label "wf_somatic_snv"
-    cpus 4
     // Define memory from phasing tool and number of attempt
-    memory { req_mem[task.attempt - 1] }
+    cpus { req_cpu[task.attempt - 1] }
     maxRetries 2
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
