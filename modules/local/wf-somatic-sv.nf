@@ -1,13 +1,13 @@
 import groovy.json.JsonBuilder
-// Memory for the SV process
-def severus_mem = [47.GB, 63.GB]
+// cpu for the SV process, was adapted from memory [47.GB, 63.GB]
+def severus_cpu = [12, 16]
 
 // Severus process
 process severus {
     label "wf_somatic_sv"
-    cpus Math.max(4, params.severus_threads)
+    // removed old cpus and with associated memory allocation (cpus Math.max(4, params.severus_threads))
     // Allow retries for testing purposes
-    memory { severus_mem[task.attempt - 1] }
+    cpus { severus_cpu[task.attempt - 1] }
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -65,7 +65,6 @@ process severus {
 //  we'll rename it with its desired output name here
 process sortVCF {
     cpus 2
-    memory 4.GB
     input:
         tuple val(meta), path(vcf)
     output:
@@ -90,7 +89,6 @@ process sortVCF {
 process getVersions {
     label "wf_somatic_sv"
     cpus 1
-    memory 4.GB
     output:
         path "versions.txt"
     script:
@@ -105,7 +103,6 @@ process getVersions {
 process getParams {
     label "wf_somatic_sv"
     cpus 1
-    memory 4.GB
     output:
         path "params.json"
     script:
@@ -120,7 +117,6 @@ process getParams {
 process report {
     label "wf_common"
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta), file(vcf)
         tuple val(meta), file(tbi)
