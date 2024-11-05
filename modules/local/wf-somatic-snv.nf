@@ -217,7 +217,7 @@ process clairs_select_het_snps {
 // Run variant phasing on each contig using either longphase or whatshap.
 process clairs_phase {
     label "wf_somatic_snv"
-    // Define memory from phasing tool and number of attempt
+    // Define cpus from phasing tool and number of attempt, adapted from memory
     cpus { req_cpu[task.attempt - 1] }
     maxRetries 2
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
@@ -276,7 +276,6 @@ process clairs_phase {
 process clairs_haplotag {
     label "wf_somatic_snv"
     cpus 4
-    memory 4.GB
     input:
         tuple val(meta), 
             val(contig), 
@@ -324,8 +323,8 @@ process clairs_haplotag {
 // Extract candidate regions to process
 process clairs_extract_candidates {
     label "wf_somatic_snv"
-    cpus 2
-    memory { 6.GB * task.attempt }
+    // cpus adapted from memory { 6.GB * task.attempt }
+    cpus {2 * task.attempt}
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -420,8 +419,8 @@ process clairs_extract_candidates {
 // Create Paired Tensors for pileup variant calling step
 process clairs_create_paired_tensors {
     label "wf_somatic_snv"
-    cpus 2
-    memory { 4.GB * task.attempt }
+    // cpus adapted from memory { 4.GB * task.attempt }
+    cpus {2 * task.attempt}
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -480,8 +479,7 @@ process clairs_create_paired_tensors {
 // Perform pileup variant prediction using the paired tensors from clairs_create_paired_tensors
 process clairs_predict_pileup {
     label "wf_somatic_snv"
-    cpus 1
-    memory { 4.GB * task.attempt }
+    cpus {1 * task.attempt}
     maxRetries 3
     // Add 134 as a possible error status. This is because currently ClairS fails with
     // this error code when libomp.so is already instantiated. This error is rather mysterious
@@ -552,7 +550,6 @@ process clairs_predict_pileup {
 process clairs_merge_pileup {
     label "wf_somatic_snv"
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta), 
             val(variant_type),
@@ -581,8 +578,8 @@ process clairs_merge_pileup {
 // Create Paired Tensors for full-alignment variant calling.
 process clairs_create_fullalignment_paired_tensors {
     label "wf_somatic_snv"
-    cpus 2
-    memory { 4.GB * task.attempt }
+    // cpus adapted from memory { 4.GB * task.attempt }
+    cpus {2 * task.attempt}
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -637,8 +634,8 @@ process clairs_create_fullalignment_paired_tensors {
 // Call variants using the full-alignment paired tensors 
 process clairs_predict_full {
     label "wf_somatic_snv"
-    cpus 1
-    memory { 4.GB * task.attempt }
+    // cpus adapted from memory { 4.GB * task.attempt }
+    cpus {1 * task.attempt}
     maxRetries 3
     // Add 134 as a possible error status. This is because currently ClairS fails with
     // this error code when libomp.so is already instantiated. This error is rather mysterious
@@ -706,8 +703,8 @@ process clairs_predict_full {
 // Merge single-contigs full-alignment variants in a single VCF file
 process clairs_merge_full {
     label "wf_somatic_snv"
-    cpus 1
-    memory { 4.GB * task.attempt }
+    // cpus adpated from memory { 4.GB * task.attempt }
+    cpus {1 * task.attempt}
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -738,7 +735,6 @@ process clairs_merge_full {
 process clairs_full_hap_filter {
     label "wf_somatic_snv"
     cpus params.haplotype_filter_threads
-    memory { (2.GB * task.cpus) + 3.GB }
     input:
         tuple val(meta),
             val(ctg),
@@ -794,7 +790,6 @@ process clairs_full_hap_filter {
 process concat_hap_filtered_vcf {
     label "wf_somatic_snv"
     cpus 2
-    memory 4.GB
     input:
         tuple val(meta), 
             val(variant_type),
@@ -845,7 +840,6 @@ process concat_hap_filtered_vcf {
 process clairs_merge_final {
     label "wf_somatic_snv"
     cpus 2
-    memory 4.GB
     input:
         tuple val(meta),
             val(variant_type),
@@ -891,7 +885,6 @@ process clairs_merge_final {
 // duplicated sites.
 process getVariantType {
     cpus 2
-    memory 4.GB
     input:
         tuple val(meta), val(variant_type), path(vcf), path(tbi)
     output:
@@ -911,7 +904,6 @@ process getVariantType {
 // Concatenate SNVs and Indels in a single VCF file. 
 process clairs_merge_snv_and_indels {
     cpus 3
-    memory 4.GB
     input:
         tuple val(meta), path(vcfs, stageAs: 'VCFs/*'), path(tbis, stageAs: 'VCFs/*')
     output:
@@ -939,7 +931,6 @@ process clairs_merge_snv_and_indels {
 process concat_bams {
     label "wf_somatic_snv"
     cpus 4
-    memory { (task.cpus * 2.GB) + 2.GB }
     input:
         tuple val(meta), 
             path("bams/*"), 
@@ -990,7 +981,6 @@ process concat_bams {
 process change_count {
     label "wf_common"
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta),
             path("input.vcf.gz"),
@@ -1019,7 +1009,6 @@ process change_count {
 process add_missing_vars {
     label "wf_somatic_snv"
     cpus 1
-    memory 4.GB
     input:
         tuple val(meta), 
             val(variant_type),
