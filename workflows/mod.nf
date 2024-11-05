@@ -111,7 +111,7 @@ process sample_probs {
 process modkit {
     label "wf_somatic_mod"
     // cpus line edited to replace line 'memory {(1.GB * params.modkit_threads * task.attempt) + 3.GB}'
-    cpus {(params.modkit_threads * task.attempt) + 1}
+    cpus {(params.modkit_threads * task.attempt)}
     maxRetries 1
     errorStrategy {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -242,8 +242,8 @@ process bed2dss {
 // Run DSS to compute DMR/L
 process dss {
     label "dss"
-    // cpus increased from 4 to 20 to replace 'memory { (task.cpus * 19.GB) }'
-    cpus { params.dss_threads <= 20 ? params.dss_threads : 20 }
+    // cpus increased from 4 to 16 to replace 'memory { (task.cpus * 19.GB) }'
+    cpus { params.dss_threads <= 16 ? params.dss_threads : 16 }
     // Set memory to 16G/core + 2GB for buffer.
     // Benchmark shows that DSS ends up using more memory than predicted,
     // with spikes up to >74GB with 4 cores. In these cases we ignore the raised errors.

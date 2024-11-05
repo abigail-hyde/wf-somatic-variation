@@ -1,5 +1,5 @@
 // Define cpus for the phasing - changed from memory
-def req_cpu = params.use_longphase ? [4, 8, 14] : [4, 4, 4]
+def req_cpu = params.use_longphase ? [4, 8, 16] : [4, 4, 4]
 
 process make_chunks {
     // Do some preliminaries. Ordinarily this would setup a working directory
