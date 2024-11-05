@@ -28,7 +28,6 @@ Map parse_reference(Map arguments) {
 process cram_cache {
     label "wf_common"
     cpus 1
-    memory 4.GB
     input:
         path reference
     output:
@@ -51,7 +50,6 @@ process faidx {
     publishDir "${params.out_dir}", mode: 'copy', pattern: "*", enabled: !params.ref.toLowerCase().endsWith("gz")
     label "wf_common"
     cpus 1
-    memory 4.GB
     input:
         path(ref)
     output:
@@ -67,7 +65,6 @@ process gz_faidx {
     publishDir "${params.out_dir}", mode: 'copy', pattern: "*"
     label "wf_common"
     cpus 1
-    memory 4.GB
     // If a user provides a non-bgzipped file, the process won't
     // generate the indexes. We should tolerate that, still avoid emitting
     // the reference and simply have a broken IGV file.
@@ -88,7 +85,6 @@ process gz_faidx {
 process decompress_ref {
     label "wf_common"
     cpus 1
-    memory 4.GB
     input:
         path "ref.fa.gz"
     output:
@@ -102,7 +98,6 @@ process decompress_ref {
 process make_mmi {
     // Minimap2 is not available in wf_common
     cpus 4
-    memory 16.GB
     input:
         path("ref.fa")
     output:
