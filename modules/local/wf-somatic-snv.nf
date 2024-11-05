@@ -903,7 +903,7 @@ process getVariantType {
 
 // Concatenate SNVs and Indels in a single VCF file. 
 process clairs_merge_snv_and_indels {
-    cpus 3
+    cpus 4
     input:
         tuple val(meta), path(vcfs, stageAs: 'VCFs/*'), path(tbis, stageAs: 'VCFs/*')
     output:
