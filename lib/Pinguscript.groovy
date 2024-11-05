@@ -130,7 +130,7 @@ class Pinguscript {
                 ],
                 "resource": [
                     "cpus": cpus,
-                    "memory": null, // placeholder, no point asking via Runtime as it will just give us the Xmx size
+                    // "memory": null, placeholder, no point asking via Runtime as it will just give us the Xmx size
                 ],
                 "agent": get_meta(params.wf, "agent"), // access via original params
                 "epi2me": [
