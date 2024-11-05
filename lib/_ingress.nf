@@ -12,7 +12,6 @@ include { xam_ingress } from './ingress.nf'
 // as you can imagine i am not happy about this
 process cram_to_bam {
     cpus 2
-    memory 4.GB
     input:
         tuple path(cram), path(crai), val(meta)
         tuple path(ref), path(ref_idx)
@@ -27,8 +26,8 @@ process cram_to_bam {
 
 // Minimap2 mapping
 process minimap2_alignment {
-    cpus {params.ubam_map_threads + params.ubam_sort_threads + params.ubam_bam2fq_threads}
-    memory { (32.GB * task.attempt) - 1.GB }
+    // cpus adapted to replace memory { (32.GB * task.attempt) - 1.GB }
+    cpus {params.ubam_map_threads + params.ubam_sort_threads + params.ubam_bam2fq_threads > 8 * task.attempt ? params.ubam_map_threads + params.ubam_sort_threads + params.ubam_bam2fq_threads : 8 * task.attempt}
     maxRetries 1
     errorStrategy = {task.exitStatus in [137,140] ? 'retry' : 'finish'}
     input:
@@ -58,7 +57,6 @@ process minimap2_alignment {
 process check_for_alignment {
     label "wf_common"
     cpus 2
-    memory 4.GB
     input:
         tuple path(reference), path(ref_idx)
         tuple val(meta), path(xam), path(xam_idx)
