@@ -3,7 +3,6 @@ import groovy.json.JsonBuilder
 process getParams {
     label "wf_common"
     cpus 1
-    memory "2 GB"
     output:
         path "params.json"
     script:
@@ -18,7 +17,6 @@ process configure_igv {
     publishDir "${params.out_dir}/", mode: 'copy', pattern: 'igv.json', enabled: params.containsKey("igv") && params.igv
     label "wf_common"
     cpus 1
-    memory "2 GB"
     input:
         // the python script will work out what to do with all the files based on their
         // extensions
