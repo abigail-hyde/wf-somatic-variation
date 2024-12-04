@@ -184,20 +184,12 @@ def main(args):
     if args.dml:
         logger.info(f"Load: {args.dml}")
         dmls = load_dm(args.dml, faidx, load_dml)
-        with open(args.dml, 'r') as file:
-            first_line = file.readline().strip()
-            if not first_line:
-                dmls = {}
     else:
         dmls = {}
 
     if args.dmr:
         logger.info(f"Load: {args.dmr}")
         dmrs = load_dm(args.dmr, faidx, load_dmr)
-        with open(args.dmr, 'r') as file:
-            first_line = file.readline().strip()
-            if not first_line:
-                dmrs = {}
     else:
         dmrs = {}
 
@@ -225,10 +217,16 @@ def main(args):
         )
     # Define the number of DMLs for the summary table
     if dmls:
-        n_dml = pd.concat(dmls)[["chrom", "pos"]].drop_duplicates().shape[0]
+        try:
+            n_dml = pd.concat(dmls)[["chrom", "pos"]].drop_duplicates().shape[0]
+        except KeyError:
+            n_dml = "NA"
     # Define the number of DMRs for the summary table
     if dmrs:
-        n_dmr = pd.concat(dmrs)[["chrom", "start"]].drop_duplicates().shape[0]
+        try:
+            n_dmr = pd.concat(dmrs)[["chrom", "start"]].drop_duplicates().shape[0]
+        except KeyError:
+            n_dmr = "NA"
 
     # Instantiate the report
     report = LabsReport(
