@@ -184,12 +184,20 @@ def main(args):
     if args.dml:
         logger.info(f"Load: {args.dml}")
         dmls = load_dm(args.dml, faidx, load_dml)
+        with open(args.dml, 'r') as file:
+        first_line = file.readline().strip()
+        if not first_line:
+            dmls = {}
     else:
         dmls = {}
 
     if args.dmr:
         logger.info(f"Load: {args.dmr}")
         dmrs = load_dm(args.dmr, faidx, load_dmr)
+        with open(args.dmr, 'r') as file:
+        first_line = file.readline().strip()
+        if not first_line:
+            dmrs = {}
     else:
         dmrs = {}
 
