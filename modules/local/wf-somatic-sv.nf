@@ -80,7 +80,7 @@ process sortVCF {
     echo "tumor\t${meta.alias}" > sample_rename.txt
     bcftools sort -m 2G -O v ${vcf} \
     | bcftools reheader -s sample_rename.txt - \
-    | bcftools filter --threads ${task.cpus} -e "INFO/END < POS & INFO/SVTYPE == 'INV'" \
+    | bcftools filter --threads ${task.cpus} -e "INFO/END < POS & (INFO/SVTYPE == 'INV' | INFO/SVTYPE == 'DUP')" \
     | bgzip -c > ${meta.alias}.wf-somatic-sv.vcf.gz 
     bcftools index --threads ${task.cpus} -t ${meta.alias}.wf-somatic-sv.vcf.gz
     """
